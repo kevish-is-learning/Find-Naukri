@@ -7,12 +7,14 @@ import NameModal from "@/components/NameModal";
 import AlertToast from "@/components/AlertToast";
 import ProfileForm from "@/components/ProfileForm";
 import ResultsPanel from "@/components/ResultsPanel";
+import ExamResultsPanel from "@/components/ExamResultsPanel";
 
 export default function Home() {
   const [lang, setLang] = useState("en");
   const [userName, setUserName] = useState("");
   const [showNameModal, setShowNameModal] = useState(true);
   const [nameInput, setNameInput] = useState("");
+  const [activeTab, setActiveTab] = useState("schemes");
 
   const [profile, setProfile] = useState({
     name: "",
@@ -24,9 +26,17 @@ export default function Home() {
     percentage: "",
   });
 
+  // Scheme state
   const [schemes, setSchemes] = useState([]);
-  const [groundingLinks, setGroundingLinks] = useState([]);
-  const [loading, setLoading] = useState(false);
+  const [schemeGroundingLinks, setSchemeGroundingLinks] = useState([]);
+  const [schemeLoading, setSchemeLoading] = useState(false);
+
+  // Exam state
+  const [currentExams, setCurrentExams] = useState([]);
+  const [upcomingExams, setUpcomingExams] = useState([]);
+  const [examGroundingLinks, setExamGroundingLinks] = useState([]);
+  const [examLoading, setExamLoading] = useState(false);
+
   const [alert, setAlert] = useState({
     title: "",
     message: "",
@@ -54,98 +64,128 @@ export default function Home() {
     setShowNameModal(false);
   };
 
-  const handleSearch = async () => {
+  const showAlert = (title, message, duration = 4000) => {
+    setAlert({ title, message, show: true });
+    setTimeout(() => {
+      setAlert((prev) => ({ ...prev, show: false }));
+    }, duration);
+  };
+
+  const handleApiError = (error) => {
+    let friendlyMessage = error.message || t.connectionError;
+    let errorTitle = "Service Error";
+
+    if (
+      friendlyMessage.includes("429") ||
+      friendlyMessage.includes("RESOURCE_EXHAUSTED") ||
+      friendlyMessage.includes("quota")
+    ) {
+      errorTitle = "Rate Limit Exceeded (429)";
+      friendlyMessage =
+        lang === "en"
+          ? "The Gemini API Key has exceeded its free-tier rate limits or search grounding quota. Please wait 10-15 seconds and try again, or check your API key quota settings in AI Studio."
+          : "Gemini API कुंजी अपनी फ्री-टियर कोटा सीमा पार कर गई है। कृपया 10-15 सेकंड प्रतीक्षा करें और पुनः प्रयास करें, या AI Studio में अपनी API कुंजी कोटा सेटिंग्स जांचें।";
+    }
+
+    showAlert(errorTitle, friendlyMessage, 6500);
+  };
+
+  const parseApiResponse = async (response) => {
+    if (!response.ok) {
+      const errorText = await response.text();
+      try {
+        const parsedError = JSON.parse(errorText);
+        const rawMessage =
+          parsedError.error || parsedError.message || errorText;
+        if (typeof rawMessage === "string" && rawMessage.startsWith("{")) {
+          try {
+            const subParsed = JSON.parse(rawMessage);
+            throw new Error(
+              subParsed.error?.message || subParsed.message || rawMessage
+            );
+          } catch {
+            throw new Error(rawMessage);
+          }
+        }
+        throw new Error(rawMessage);
+      } catch (parseErr) {
+        throw new Error(parseErr.message || errorText);
+      }
+    }
+    return response.json();
+  };
+
+  const handleSearchSchemes = async () => {
     if (!profile.state) {
-      setAlert({
-        title: t.validationTitle,
-        message: t.validationMessage,
-        show: true,
-      });
-      setTimeout(() => {
-        setAlert((prev) => ({ ...prev, show: false }));
-      }, 4000);
+      showAlert(t.validationTitle, t.validationMessage);
       return;
     }
 
-    setLoading(true);
+    setSchemeLoading(true);
     setSchemes([]);
-    setGroundingLinks([]);
+    setSchemeGroundingLinks([]);
 
     try {
       const response = await fetch("/api/schemes", {
         method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          profile,
-          language: lang,
-        }),
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile, language: lang }),
       });
 
-      if (!response.ok) {
-        const errorText = await response.text();
-        try {
-          const parsedError = JSON.parse(errorText);
-          const rawMessage =
-            parsedError.error || parsedError.message || errorText;
-          // Clean nested JSON stringified errors
-          if (
-            typeof rawMessage === "string" &&
-            rawMessage.startsWith("{")
-          ) {
-            try {
-              const subParsed = JSON.parse(rawMessage);
-              throw new Error(
-                subParsed.error?.message || subParsed.message || rawMessage
-              );
-            } catch {
-              throw new Error(rawMessage);
-            }
-          }
-          throw new Error(rawMessage);
-        } catch (parseErr) {
-          throw new Error(parseErr.message || errorText);
-        }
-      }
-
-      const responseData = await response.json();
-      setSchemes(responseData.schemes || []);
-      setGroundingLinks(responseData.groundingLinks || []);
+      const data = await parseApiResponse(response);
+      setSchemes(data.schemes || []);
+      setSchemeGroundingLinks(data.groundingLinks || []);
     } catch (error) {
-      console.error("Search failed:", error);
-
-      let friendlyMessage = error.message || t.connectionError;
-      let errorTitle = "Service Error";
-
-      if (
-        friendlyMessage.includes("429") ||
-        friendlyMessage.includes("RESOURCE_EXHAUSTED") ||
-        friendlyMessage.includes("quota")
-      ) {
-        errorTitle = "Rate Limit Exceeded (429)";
-        friendlyMessage =
-          lang === "en"
-            ? "The Gemini API Key has exceeded its free-tier rate limits or search grounding quota. Please wait 10-15 seconds and try again, or check your API key quota settings in AI Studio."
-            : "Gemini API कुंजी अपनी फ्री-टियर कोटा सीमा पार कर गई है। कृपया 10-15 सेकंड प्रतीक्षा करें और पुनः प्रयास करें, या AI Studio में अपनी API कुंजी कोटा सेटिंग्स जांचें।";
-      }
-
-      setAlert({
-        title: errorTitle,
-        message: friendlyMessage,
-        show: true,
-      });
-      setTimeout(() => {
-        setAlert((prev) => ({ ...prev, show: false }));
-      }, 6500);
+      console.error("Scheme search failed:", error);
+      handleApiError(error);
     } finally {
-      setLoading(false);
+      setSchemeLoading(false);
+    }
+  };
+
+  const handleSearchExams = async () => {
+    if (!profile.state) {
+      showAlert(t.validationTitle, t.validationMessage);
+      return;
+    }
+
+    setExamLoading(true);
+    setCurrentExams([]);
+    setUpcomingExams([]);
+    setExamGroundingLinks([]);
+
+    try {
+      const response = await fetch("/api/exams", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ profile, language: lang }),
+      });
+
+      const data = await parseApiResponse(response);
+      setCurrentExams(data.currentExams || []);
+      setUpcomingExams(data.upcomingExams || []);
+      setExamGroundingLinks(data.groundingLinks || []);
+    } catch (error) {
+      console.error("Exam search failed:", error);
+      handleApiError(error);
+    } finally {
+      setExamLoading(false);
+    }
+  };
+
+  const handleSearch = () => {
+    if (activeTab === "exams") {
+      handleSearchExams();
+    } else {
+      handleSearchSchemes();
     }
   };
 
   const toggleLanguage = () => {
     setLang((prev) => (prev === "en" ? "hi" : "en"));
   };
+
+  const isLoading = activeTab === "exams" ? examLoading : schemeLoading;
 
   return (
     <div className="min-h-screen flex flex-col justify-between relative overflow-hidden">
@@ -180,19 +220,33 @@ export default function Home() {
           t={t}
           profile={profile}
           setProfile={setProfile}
-          loading={loading}
+          loading={isLoading}
           onSearch={handleSearch}
+          activeTab={activeTab}
+          onTabChange={setActiveTab}
         />
 
-        {/* Results Panel */}
-        <ResultsPanel
-          t={t}
-          lang={lang}
-          userName={userName}
-          loading={loading}
-          schemes={schemes}
-          groundingLinks={groundingLinks}
-        />
+        {/* Results Panel — switches based on active tab */}
+        {activeTab === "exams" ? (
+          <ExamResultsPanel
+            t={t}
+            lang={lang}
+            userName={userName}
+            loading={examLoading}
+            currentExams={currentExams}
+            upcomingExams={upcomingExams}
+            groundingLinks={examGroundingLinks}
+          />
+        ) : (
+          <ResultsPanel
+            t={t}
+            lang={lang}
+            userName={userName}
+            loading={schemeLoading}
+            schemes={schemes}
+            groundingLinks={schemeGroundingLinks}
+          />
+        )}
       </main>
     </div>
   );

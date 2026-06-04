@@ -1,12 +1,14 @@
 "use client";
 
-import { MapPin, Wallet, BookOpen, Search, Loader2 } from "lucide-react";
+import { MapPin, Wallet, BookOpen, Search, Loader2, GraduationCap, ScrollText } from "lucide-react";
 import { motion, AnimatePresence } from "motion/react";
 
-export default function ProfileForm({ t, profile, setProfile, loading, onSearch }) {
+export default function ProfileForm({ t, profile, setProfile, loading, onSearch, activeTab, onTabChange }) {
   const updateProfile = (key, value) => {
     setProfile((prev) => ({ ...prev, [key]: value }));
   };
+
+  const isExamMode = activeTab === "exams";
 
   return (
     <section className="lg:col-span-5 bg-white/[0.03] border border-white/[0.07] rounded-2xl sm:rounded-3xl p-5 sm:p-6 md:p-8 backdrop-blur-md relative overflow-hidden shadow-lg">
@@ -25,6 +27,32 @@ export default function ProfileForm({ t, profile, setProfile, loading, onSearch 
         <p className="text-[11px] sm:text-xs text-slate-400 leading-relaxed font-sans mt-2">
           {t.tagline}
         </p>
+      </div>
+
+      {/* Tab Switcher */}
+      <div className="flex bg-[#05091a] rounded-xl p-1 mb-5 sm:mb-6 border border-white/5">
+        <button
+          onClick={() => onTabChange("schemes")}
+          className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 ${
+            !isExamMode
+              ? "bg-gradient-to-r from-indigo-600/80 to-indigo-500/80 text-white shadow-md shadow-indigo-600/20"
+              : "text-slate-400 hover:text-slate-300"
+          }`}
+        >
+          <ScrollText className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          {t.tabSchemes}
+        </button>
+        <button
+          onClick={() => onTabChange("exams")}
+          className={`flex-1 flex items-center justify-center gap-1.5 sm:gap-2 py-2.5 sm:py-3 rounded-lg text-xs sm:text-sm font-semibold transition-all duration-200 ${
+            isExamMode
+              ? "bg-gradient-to-r from-violet-600/80 to-violet-500/80 text-white shadow-md shadow-violet-600/20"
+              : "text-slate-400 hover:text-slate-300"
+          }`}
+        >
+          <GraduationCap className="h-3.5 w-3.5 sm:h-4 sm:w-4" />
+          {t.tabExams}
+        </button>
       </div>
 
       {/* Form Fields */}
@@ -148,21 +176,29 @@ export default function ProfileForm({ t, profile, setProfile, loading, onSearch 
           )}
         </AnimatePresence>
 
-        {/* Search Button */}
+        {/* Search Button — adapts to active tab */}
         <button
           onClick={onSearch}
           disabled={loading}
-          className="mt-3 sm:mt-4 w-full bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 text-white hover:opacity-95 active:scale-[0.98] transition-all duration-200 font-bold p-3.5 sm:p-4 rounded-xl text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-lg shadow-indigo-600/30"
+          className={`mt-3 sm:mt-4 w-full text-white hover:opacity-95 active:scale-[0.98] transition-all duration-200 font-bold p-3.5 sm:p-4 rounded-xl text-sm flex items-center justify-center gap-2 cursor-pointer disabled:opacity-50 disabled:cursor-not-allowed shadow-lg ${
+            isExamMode
+              ? "bg-gradient-to-r from-violet-600 via-violet-500 to-fuchsia-500 shadow-violet-600/30"
+              : "bg-gradient-to-r from-indigo-600 via-indigo-500 to-cyan-500 shadow-indigo-600/30"
+          }`}
         >
           {loading ? (
             <>
               <Loader2 className="h-4 w-4 animate-spin" />
-              <span>{t.btnSearching}</span>
+              <span>{isExamMode ? t.btnSearchingExams : t.btnSearching}</span>
             </>
           ) : (
             <>
-              <Search className="h-4 w-4" />
-              <span>{t.btnSearch}</span>
+              {isExamMode ? (
+                <GraduationCap className="h-4 w-4" />
+              ) : (
+                <Search className="h-4 w-4" />
+              )}
+              <span>{isExamMode ? t.btnSearchExams : t.btnSearch}</span>
             </>
           )}
         </button>

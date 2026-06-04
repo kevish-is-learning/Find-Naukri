@@ -71,7 +71,25 @@ export const TRANSLATIONS = {
     loadingTitle: "Analyzing Database for",
     loadingDesc: "Searching live official sub-domains (gov.in) to retrieve up-to-date scheme terms, documents, and application forms.",
     resultsTitle: "Eligible Matched Schemes",
-    emptyTitle: "Start Government Scheme Search"
+    emptyTitle: "Start Government Scheme Search",
+    // Exam Section
+    tabSchemes: "Schemes",
+    tabExams: "Exams",
+    btnSearchExams: "Search Matching Exams",
+    btnSearchingExams: "AI Matching Exam Database...",
+    examResultsTitle: "Matched Exams & Recruitments",
+    examEmptyTitle: "Start Exam & Recruitment Search",
+    examNoInputText: "Enter your profile configurations on the left and click 'Search Matching Exams' to find current and upcoming government exams.",
+    examNoInputTextMobile: "Fill in your profile above and tap 'Search Matching Exams' to find current and upcoming government exams.",
+    examLoadingDesc: "Searching live official portals to retrieve up-to-date exam schedules, registration deadlines, and eligibility criteria.",
+    examCurrentTitle: "Current / Live Exams",
+    examUpcomingTitle: "Upcoming Exams",
+    examStatusCurrent: "LIVE NOW",
+    examStatusUpcoming: "UPCOMING",
+    examDate: "Exam Date",
+    examRegDeadline: "Registration Deadline",
+    examDescription: "About This Exam",
+    examApplyNow: "Apply / Register"
   },
   hi: {
     title: "योजना",
@@ -145,6 +163,24 @@ export const TRANSLATIONS = {
     loadingTitle: "के लिए डेटाबेस का विश्लेषण हो रहा है",
     loadingDesc: "नवीनतम योजना शर्तों, दस्तावेज़ों व आवेदन फ़ॉर्मों को पुनर्प्राप्त करने के लिए लाइव सरकारी पोर्टलों (.gov.in) की खोज की जा रही है।",
     resultsTitle: "योग्य मिलान योजनाएं",
-    emptyTitle: "सरकारी योजना खोज शुरू करें"
+    emptyTitle: "सरकारी योजना खोज शुरू करें",
+    // Exam Section
+    tabSchemes: "योजनाएं",
+    tabExams: "परीक्षाएं",
+    btnSearchExams: "योग्य परीक्षाएं खोजें",
+    btnSearchingExams: "एआई डेटाबेस से परीक्षाएं ढूंढ रहा है...",
+    examResultsTitle: "मिलान परीक्षाएं व भर्तियां",
+    examEmptyTitle: "परीक्षा व भर्ती खोज शुरू करें",
+    examNoInputText: "बाईं ओर अपना प्रोफाइल सेट करें और वर्तमान व आगामी सरकारी परीक्षाओं के लिए 'योग्य परीक्षाएं खोजें' पर क्लिक करें।",
+    examNoInputTextMobile: "ऊपर अपना प्रोफ़ाइल भरें और सरकारी परीक्षाएं खोजने के लिए 'योग्य परीक्षाएं खोजें' पर टैप करें।",
+    examLoadingDesc: "नवीनतम परीक्षा शेड्यूल, पंजीकरण तिथियों और पात्रता मानदंडों को खोजने के लिए लाइव सरकारी पोर्टलों की खोज की जा रही है।",
+    examCurrentTitle: "वर्तमान / लाइव परीक्षाएं",
+    examUpcomingTitle: "आगामी परीक्षाएं",
+    examStatusCurrent: "लाइव",
+    examStatusUpcoming: "आगामी",
+    examDate: "परीक्षा तिथि",
+    examRegDeadline: "पंजीकरण की अंतिम तिथि",
+    examDescription: "परीक्षा के बारे में",
+    examApplyNow: "आवेदन / पंजीकरण"
   }
 };
